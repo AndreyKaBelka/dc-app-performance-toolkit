@@ -1,10 +1,8 @@
 import random
 import urllib.parse
-
-from selenium_ui.conftest import print_timing
+from selenium_ui.conftest import print_timing, Dataset
 from selenium_ui.jira.pages.pages import Login, PopupManager, Issue, Project, Search, ProjectsList, \
     BoardsList, Board, Dashboard, Logout
-
 from util.api.jira_clients import JiraRestClient
 from util.conf import JIRA_SETTINGS
 
@@ -17,6 +15,7 @@ USERS = "users"
 ISSUES = "issues"
 CUSTOM_ISSUES = "custom_issues"
 JQLS = "jqls"
+SW_PAGES = "pages"
 PROJECTS = "projects"
 
 
@@ -25,6 +24,13 @@ def setup_run_data(datasets):
     projects_count = len(datasets[PROJECTS])
     user = random.choice(datasets[USERS])
     issue = random.choice(datasets[ISSUES])
+    projects = random.choice(datasets[PROJECTS])
+    datasets['project_key'] = projects[0]
+    if SW_PAGES in datasets:
+        if len(datasets[SW_PAGES]) > 0:
+            sw_page = random.choice(datasets[SW_PAGES])
+            datasets['sw_project_key'] = sw_page[2]
+            datasets['sw_page_key'] = sw_page[1]
     if CUSTOM_ISSUES in datasets:
         if len(datasets[CUSTOM_ISSUES]) > 0:
             custom_issue = random.choice(datasets[CUSTOM_ISSUES])
