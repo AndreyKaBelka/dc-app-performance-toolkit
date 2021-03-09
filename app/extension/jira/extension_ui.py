@@ -56,7 +56,7 @@ def sw_page_create(webdriver, datasets):
             sw_pages_list.wait_for_page_loaded()
 
         sub_measure()
-        sleep(0.5)
+        sleep(1.5)
 
         @print_timing('selenium_sw_page_create:adding_page')
         def sub_measure():
