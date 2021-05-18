@@ -1,13 +1,14 @@
+import json
 import random
 import string
 
 import urllib3
 
-
-from util.conf import JIRA_SETTINGS
 from util.api.jira_clients import JiraRestClient
+from util.conf import JIRA_SETTINGS
 from util.project_paths import JIRA_DATASET_JQLS, JIRA_DATASET_SCRUM_BOARDS, JIRA_DATASET_KANBAN_BOARDS, \
-    JIRA_DATASET_USERS, JIRA_DATASET_ISSUES, JIRA_DATASET_PROJECTS, JIRA_DATASET_CUSTOM_ISSUES
+    JIRA_DATASET_USERS, JIRA_DATASET_ISSUES, JIRA_DATASET_PROJECTS, JIRA_DATASET_CUSTOM_ISSUES, \
+    INTERCOM_DATASET_ISSUE_WITH_LINKS, INTERCOM_CONVERSATION_IDS
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -18,6 +19,8 @@ ISSUES = "issues"
 JQLS = "jqls"
 PROJECTS = "projects"
 CUSTOM_ISSUES = "custom_issues"
+INTERCOM_ISSUES = "intercom_issues"
+INTERCOM_CONVERSATIONS = "intercom_conversations"
 
 DEFAULT_USER_PASSWORD = 'password'
 DEFAULT_USER_PREFIX = 'performance_'
@@ -82,6 +85,14 @@ def write_test_data_to_files(datasets):
     issues = [f"{issue['key']},{issue['id']},{issue['key'].split('-')[0]}" for issue in datasets[CUSTOM_ISSUES]]
     __write_to_file(JIRA_DATASET_CUSTOM_ISSUES, issues)
 
+    intercom_issues = [f"{intercom_issue['key']},{intercom_issue['id']},{intercom_issue['key'].split('-')[0]}" for
+                       intercom_issue in datasets[INTERCOM_ISSUES]]
+    __write_to_file(INTERCOM_DATASET_ISSUE_WITH_LINKS, intercom_issues)
+
+    intercom_conversations = [f"{intercom_conversation[0]},{intercom_conversation[1]}" for
+                              intercom_conversation in datasets[INTERCOM_CONVERSATIONS]]
+    __write_to_file(INTERCOM_CONVERSATION_IDS, intercom_conversations)
+
     keys = datasets[PROJECTS]
     __write_to_file(JIRA_DATASET_PROJECTS, keys)
 
@@ -104,12 +115,15 @@ def __create_data_set(jira_api):
     dataset[SCRUM_BOARDS] = __get_boards(perf_user_api, 'scrum')
     dataset[KANBAN_BOARDS] = __get_boards(perf_user_api, 'kanban')
     dataset[JQLS] = __generate_jqls(count=150)
+    dataset[INTERCOM_ISSUES] = __get_intercom_issues(perf_user_api)
+    dataset[INTERCOM_CONVERSATIONS] = __get_intercom_conversations(perf_user_api)
     print(f'Users count: {len(dataset[USERS])}')
     print(f'Projects: {len(dataset[PROJECTS])}')
     print(f'Issues count: {len(dataset[ISSUES])}')
     print(f'Scrum boards count: {len(dataset[SCRUM_BOARDS])}')
     print(f'Kanban boards count: {len(dataset[KANBAN_BOARDS])}')
     print(f'Jqls count: {len(dataset[JQLS])}')
+    print(f'Intercom issues: {len(dataset[INTERCOM_ISSUES])}')
     print('------------------------')
     print(f'Custom dataset issues: {len(dataset[CUSTOM_ISSUES])}')
 
@@ -128,6 +142,27 @@ def __get_issues(jira_api, software_projects):
     return issues
 
 
+def __get_intercom_issues(jira_api):
+    issues = jira_api.issues_search(
+        jql="linkedIntercomConversationId is not EMPTY", max_results=8000
+    )
+    if not issues:
+        raise SystemExit("There are no issues with intercom links")
+
+    return issues
+
+
+def __get_intercom_conversations(jira_api):
+    url = JIRA_SETTINGS.server_url + '/rest/api/2/issue/{}/properties/intercom.conversation.links'
+    intercom_issues = __get_intercom_issues(jira_api)
+    conversations = []
+    for issue in intercom_issues:
+        res = jira_api.get(url.format(issue['id']), error_msg=f"Failed for issue: {issue['id']}")
+        conversations.extend([(issue['id'], conv_id) for conv_id in json.loads(res.content)['value']['conversationIds']])
+
+    return conversations
+
+
 def __get_custom_issues(jira_api, custom_jql):
     issues = []
     if custom_jql:
@@ -142,8 +177,7 @@ def __get_custom_issues(jira_api, custom_jql):
 def __get_boards(jira_api, board_type):
     boards = jira_api.get_boards(board_type=board_type, max_results=250)
     if not boards:
-        raise SystemExit(
-            f"There are no {board_type} boards in Jira accessible by a random performance user: {jira_api.user}")
+        pass
 
     return boards
 

@@ -1,7 +1,9 @@
+import json
+
 from locustio.common_utils import generate_random_string, read_input_file
 from util.project_paths import JIRA_DATASET_ISSUES, JIRA_DATASET_JQLS, JIRA_DATASET_KANBAN_BOARDS, \
-    JIRA_DATASET_PROJECTS, JIRA_DATASET_SCRUM_BOARDS, JIRA_DATASET_USERS
-import json
+    JIRA_DATASET_PROJECTS, JIRA_DATASET_SCRUM_BOARDS, JIRA_DATASET_USERS, INTERCOM_DATASET_ISSUE_WITH_LINKS, \
+    INTERCOM_CONVERSATION_IDS
 
 
 def jira_datasets():
@@ -12,6 +14,8 @@ def jira_datasets():
     data_sets["scrum_boards"] = read_input_file(JIRA_DATASET_SCRUM_BOARDS)
     data_sets["kanban_boards"] = read_input_file(JIRA_DATASET_KANBAN_BOARDS)
     data_sets["projects"] = read_input_file(JIRA_DATASET_PROJECTS)
+    data_sets["intercom_issues"] = read_input_file(INTERCOM_DATASET_ISSUE_WITH_LINKS)
+    data_sets["conversation_ids"] = read_input_file(INTERCOM_CONVERSATION_IDS)
     page_size = 25
     projects_count = len(data_sets['projects'])
     data_sets['pages'] = projects_count // page_size if projects_count % page_size == 0 \
