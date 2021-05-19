@@ -8,19 +8,6 @@ logger = init_logger(app_type='jira')
 jira_dataset = jira_datasets()
 
 
-@jira_measure("locust_intercom_conversation_links")
-def intercom_conversation_links(locust):
-    raise_if_login_failed(locust)
-    if jira_dataset["intercom_issues"]:
-        issue_id = random.choice(jira_dataset["intercom_issues"])[1]
-        r = locust.get(f'/rest/api/2/issue/{issue_id}/properties/intercom.conversation.links', catch_response=True)
-        assert r.ok
-
-
-def __generate_random_id(length):
-    return ''.join([random.choice(string.digits) for _ in range(length)]).strip('0')
-
-
 @jira_measure("locust_intercom_add_conversation")
 def intercom_add_conversation(locust):
     raise_if_login_failed(locust)
@@ -36,6 +23,15 @@ def intercom_add_conversation(locust):
     jira_dataset['conversation_ids'].append((issue[1], conversation_id))
 
 
+@jira_measure("locust_intercom_conversation_links")
+def intercom_conversation_links(locust):
+    raise_if_login_failed(locust)
+    if jira_dataset["intercom_issues"]:
+        issue_id = random.choice(jira_dataset["intercom_issues"])[1]
+        r = locust.get(f'/rest/api/2/issue/{issue_id}/properties/intercom.conversation.links', catch_response=True)
+        assert r.ok
+
+
 @jira_measure("locust_intercom_delete_conversation")
 def intercom_delete_conversation(locust):
     raise_if_login_failed(locust)
@@ -47,10 +43,15 @@ def intercom_delete_conversation(locust):
                         f'conversationId={conv[1]}&issueId={conv[0]}', catch_response=True)
         assert r.ok
 
-        jira_dataset['conversation_ids'].remove(conv)
+        if conv in convs:
+            convs.remove(conv)
         issue = __get_issue_by_id(conv[0])
         if __is_conv_empty(issue[1]):
             jira_dataset['intercom_issues'].remove(issue)
+
+
+def __generate_random_id(length):
+    return ''.join([random.choice(string.digits) for _ in range(length)]).strip('0')
 
 
 def __get_project_id(key):
