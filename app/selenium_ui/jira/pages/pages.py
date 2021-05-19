@@ -6,7 +6,7 @@ import json
 
 from selenium_ui.base_page import BasePage
 from selenium_ui.jira.pages.selectors import UrlManager, LoginPageLocators, DashboardLocators, PopupLocators, \
-    IssueLocators, ProjectLocators, SearchLocators, BoardsListLocators, BoardLocators, LogoutLocators
+    IssueLocators, ProjectLocators, SearchLocators, BoardsListLocators, BoardLocators, LogoutLocators, IntercomSelectors
 
 
 class PopupManager(BasePage):
@@ -240,3 +240,15 @@ class Board(BasePage):
 
     def wait_for_scrum_board_backlog(self):
         self.wait_until_present(BoardLocators.scrum_board_backlog_content)
+
+
+class IntercomIssue(Issue):
+    def __init__(self, driver, issue_key=None, issue_id=None):
+        Issue.__init__(self, driver, issue_key, issue_id)
+        self.page_loaded_selector.__add__(IntercomSelectors.intercom_issue_panel)
+
+    def generate_link_url(self, conv_id=None):
+        return f"https://app.intercom.com/a/apps/123asd/inbox/inbox/1234567/conversations/{self.generate_random_id(10) if conv_id is None else conv_id}"
+
+    def generate_random_id(self, length):
+        return ''.join([random.choice(string.digits) for _ in range(length)]).strip('0')
