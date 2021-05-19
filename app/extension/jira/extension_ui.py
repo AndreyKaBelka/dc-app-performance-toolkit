@@ -1,24 +1,39 @@
-import random
-
-from selenium.webdriver.common.by import By
-
-from selenium_ui.base_page import BasePage
 from selenium_ui.conftest import print_timing
-from util.conf import JIRA_SETTINGS
+from selenium_ui.jira.pages.pages import Issue, IntercomIssue
+from selenium_ui.jira.pages.selectors import IntercomSelectors
 
 
-def app_specific_action(webdriver, datasets):
-    page = BasePage(webdriver)
-    if datasets['custom_issues']:
-        issue_key = datasets['custom_issue_key']
+def intercom_issue_load_action(webdriver, datasets):
+    intercom_issue_page = IntercomIssue(webdriver, issue_key=datasets['intercom_issue'][0])
+    print(datasets)
 
-    @print_timing("selenium_app_custom_action")
+    @print_timing('selenium_intercom_issue_load')
     def measure():
+        intercom_issue_page.go_to()
+        intercom_issue_page.wait_for_page_loaded()
 
-        @print_timing("selenium_app_custom_action:view_issue")
+    measure()
+
+
+def intercom_add_link_to_issue_action(webdriver, datasets):
+    intercom_issue_page = IntercomIssue(webdriver, issue_key=datasets['intercom_issue'][0])
+
+    @print_timing('selenium_intercom_add_link')
+    def measure():
+        @print_timing('selenium_intercom_add_link:load_issue')
         def sub_measure():
-            page.go_to_url(f"{JIRA_SETTINGS.server_url}/browse/{issue_key}")
-            page.wait_until_visible((By.ID, "summary-val"))  # Wait for summary field visible
-            page.wait_until_visible((By.ID, "ID_OF_YOUR_APP_SPECIFIC_UI_ELEMENT"))  # Wait for you app-specific UI element by ID selector
+            intercom_issue_page.go_to()
+            intercom_issue_page.wait_for_page_loaded()
+
         sub_measure()
+
+        @print_timing('selenium_intercom_add_link:click_add_link_button')
+        def sub_measure():
+            con_url = intercom_issue_page.generate_link_url(intercom_issue_page.generate_random_id(10))
+
+            intercom_issue_page.wait_until_clickable(IntercomSelectors.add_link_button).click()
+            intercom_issue_page.wait_until_clickable(IntercomSelectors.link_input)
+            intercom_issue_page.get_element(IntercomSelectors.link_input).send_keys(con_url)
+        sub_measure()
+
     measure()
