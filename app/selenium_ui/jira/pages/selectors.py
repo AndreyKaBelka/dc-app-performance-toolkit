@@ -148,6 +148,11 @@ class BoardLocators:
 
 
 class IntercomSelectors:
-    intercom_issue_panel = (By.XPATH, ".//*[@id='intercom-issue-panel']")
-    add_link_button = (By.XPATH, ".//*[@id='app-container']/div/div/div/button")
-    link_input = (By.XPATH, ".//*[@id='app-container']/div/div/div/div/input")
+    intercom_issue_panel = (By.XPATH, ".//div[@id='intercom-issue-panel']")
+    add_link_button = (By.XPATH, ".//div[@id='app-container']/div/div/div/button")
+    link_input = (By.XPATH, ".//div[@id='app-container']/div/div/div/div/input")
+    conversation_button = (By.XPATH, ".//div[@id='app-container']/div/div[not(position()=1)]/div/div[2]/button[1]")
+    information_button = (By.XPATH, ".//div[@id='app-container']/div/div[not(position()=1)]/div/div[2]/button[2]")
+    chat_selector = (By.XPATH, ".//div[@role='dialog']/div")
+    information_selector = (By.XPATH, ".//div[@id='app-container']/div/div[not(position()=1)]/div[2]")
+    all_information_inside_selector = (By.XPATH, ".//div[@id='app-container']/div/div[not(position()=1)]/div[2]//*")
