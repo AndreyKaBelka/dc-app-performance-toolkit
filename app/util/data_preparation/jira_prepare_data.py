@@ -144,7 +144,7 @@ def __get_issues(jira_api, software_projects):
 
 def __get_intercom_issues(jira_api):
     issues = jira_api.issues_search(
-        jql="linkedIntercomConversationId is not EMPTY", max_results=8000
+        jql="linkedIntercomConversationCount > 0", max_results=500
     )
     if not issues:
         print("There are no issues with intercom links")
