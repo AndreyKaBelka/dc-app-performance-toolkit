@@ -3,6 +3,7 @@ import string
 
 from locustio.common_utils import init_logger, jira_measure, raise_if_login_failed
 from locustio.jira.requests_params import jira_datasets
+from locust import exception
 
 logger = init_logger(app_type='jira')
 jira_dataset = jira_datasets()
@@ -58,21 +59,21 @@ def __get_project_id(key):
     for project_key, project_id in jira_dataset['projects']:
         if project_key == key:
             return project_id
-    raise SystemExit(f"Project with key {key} not found")
+    raise exception.LocustError(f"Project with key {key} not found")
 
 
 def __get_issue_by_id(id):
     for issue in jira_dataset['issues']:
         if id == issue[1]:
             return issue
-    raise SystemExit(f"Issue with id {id} not found")
+    raise exception.LocustError(f"Issue with id {id} not found")
 
 
 def __get_project_id_for_issue_id(id):
     for key, issue_id, project_key in jira_dataset['issues']:
         if id == issue_id:
             return __get_project_id(project_key)
-    raise SystemExit(f"Project not found for {id} issue")
+    raise exception.LocustError(f"Project not found for {id} issue")
 
 
 def __is_conv_empty(id):
