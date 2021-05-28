@@ -63,14 +63,14 @@ def __get_project_id(key):
 
 
 def __get_issue_by_id(id):
-    for issue in jira_dataset['issues']:
+    for issue in jira_dataset['intercom_issues']:
         if id == issue[1]:
             return issue
     raise exception.LocustError(f"Issue with id {id} not found")
 
 
 def __get_project_id_for_issue_id(id):
-    for key, issue_id, project_key in jira_dataset['issues']:
+    for key, issue_id, project_key in jira_dataset['intercom_issues']:
         if id == issue_id:
             return __get_project_id(project_key)
     raise exception.LocustError(f"Project not found for {id} issue")
