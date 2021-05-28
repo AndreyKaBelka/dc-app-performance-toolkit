@@ -1,10 +1,12 @@
-from selenium.webdriver.common.keys import Keys
-from selenium_ui.conftest import retry
-import time
-import random
 import json
+import random
+import string
+import time
+
+from selenium.webdriver.common.keys import Keys
 
 from selenium_ui.base_page import BasePage
+from selenium_ui.conftest import retry
 from selenium_ui.jira.pages.selectors import UrlManager, LoginPageLocators, DashboardLocators, PopupLocators, \
     IssueLocators, ProjectLocators, SearchLocators, BoardsListLocators, BoardLocators, LogoutLocators, IntercomSelectors
 
@@ -144,6 +146,7 @@ class Issue(BasePage):
     def set_issue_type(self):
         def __filer_epic(element):
             return "epic" not in element.get_attribute("class").lower()
+
         issue_types = {}
         data_suggestions = json.loads(self.get_element(IssueLocators.issue_types_options)
                                       .get_attribute('data-suggestions'))
@@ -168,6 +171,7 @@ class Issue(BasePage):
                         rnd_issue_type_el = random.choice(filtered_issue_elements)
                         self.action_chains().move_to_element(rnd_issue_type_el).click(rnd_issue_type_el).perform()
                     self.wait_until_invisible(IssueLocators.issue_ready_to_save_spinner)
+
                 choose_non_epic_issue_type()
 
     def submit_issue(self):
