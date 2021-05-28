@@ -98,6 +98,7 @@ def create_issue(webdriver, dataset):
 
     @print_timing("selenium_create_issue")
     def measure():
+
         @print_timing("selenium_create_issue:open_quick_create")
         def sub_measure():
             issue_modal.open_create_issue_modal()
