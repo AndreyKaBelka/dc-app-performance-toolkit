@@ -147,7 +147,7 @@ def __get_intercom_issues(jira_api):
         jql="linkedIntercomConversationId is not EMPTY", max_results=8000
     )
     if not issues:
-        raise SystemExit("There are no issues with intercom links")
+        print("There are no issues with intercom links")
 
     return issues
 
