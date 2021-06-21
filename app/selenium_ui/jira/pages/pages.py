@@ -1,12 +1,14 @@
-from selenium.webdriver.common.keys import Keys
-from selenium_ui.conftest import retry
-import time
-import random
 import json
+import random
+import string
+import time
+
+from selenium.webdriver.common.keys import Keys
 
 from selenium_ui.base_page import BasePage
+from selenium_ui.conftest import retry
 from selenium_ui.jira.pages.selectors import UrlManager, LoginPageLocators, DashboardLocators, PopupLocators, \
-    IssueLocators, ProjectLocators, SearchLocators, BoardsListLocators, BoardLocators, LogoutLocators
+    IssueLocators, ProjectLocators, SearchLocators, BoardsListLocators, BoardLocators, LogoutLocators, TaskListLocators
 
 
 class PopupManager(BasePage):
@@ -144,6 +146,7 @@ class Issue(BasePage):
     def set_issue_type(self):
         def __filer_epic(element):
             return "epic" not in element.get_attribute("class").lower()
+
         issue_types = {}
         data_suggestions = json.loads(self.get_element(IssueLocators.issue_types_options)
                                       .get_attribute('data-suggestions'))
@@ -168,6 +171,7 @@ class Issue(BasePage):
                         rnd_issue_type_el = random.choice(filtered_issue_elements)
                         self.action_chains().move_to_element(rnd_issue_type_el).click(rnd_issue_type_el).perform()
                     self.wait_until_invisible(IssueLocators.issue_ready_to_save_spinner)
+
                 choose_non_epic_issue_type()
 
     def submit_issue(self):
@@ -240,3 +244,46 @@ class Board(BasePage):
 
     def wait_for_scrum_board_backlog(self):
         self.wait_until_present(BoardLocators.scrum_board_backlog_content)
+
+
+class TaskListIssue(Issue):
+    page_loaded_selector = [TaskListLocators.task_container, IssueLocators.issue_title]
+
+    def __init__(self, driver, issue_id=None, issue_key=None):
+        Issue.__init__(self, driver, issue_key, issue_id)
+
+    def click_on_task(self):
+        self.wait_until_clickable(TaskListLocators.task_check).click()
+
+    def wait_for_tasks(self):
+        self.wait_until_present(TaskListLocators.task_container)
+
+    def create_tasks(self, count=5):
+        for _ in range(count):
+            self.action_chains().click(self.get_element(TaskListLocators.task_textarea)).send_keys(
+                self.__random_string()).send_keys(Keys.ENTER).perform()
+
+    def delete_task(self):
+        element = random.choice(self.get_elements(TaskListLocators.task_span))
+        coords = element.location_once_scrolled_into_view
+        self.driver.execute_script(f'window.scrollTo({coords["x"]},{coords["y"]})')
+        self.action_chains().click(element).pause(0.5).perform()
+        delete_button = self.get_element(TaskListLocators.task_delete_button)
+        self.action_chains().move_to_element(delete_button).click().move_by_offset(20, 20).perform()
+        self.wait_until_clickable(TaskListLocators.task_delete_text).click()
+
+    def edit_task(self):
+        element = random.choice(self.get_elements(TaskListLocators.task_span))
+        coords = element.location_once_scrolled_into_view
+        self.driver.execute_script(f'window.scrollTo({coords["x"]},{coords["y"]})')
+        self.action_chains().click(element).pause(1).perform()
+        edit_button = self.get_element(TaskListLocators.task_edit_button)
+        self.action_chains().move_to_element(edit_button).click().perform()
+        text_area = self.get_elements(TaskListLocators.task_textarea)[1]
+        self.action_chains().click(text_area) \
+            .key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL) \
+            .send_keys(Keys.DELETE).send_keys(self.__random_string(20)).perform()
+        self.wait_until_clickable(TaskListLocators.task_save_button).click()
+
+    def __random_string(self, count=10):
+        return ''.join([random.choice(string.ascii_letters) for _ in range(count)])

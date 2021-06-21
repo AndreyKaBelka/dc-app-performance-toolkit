@@ -151,3 +151,14 @@ class BoardLocators:
     # Scrum boards
     scrum_board_backlog_content = (By.CSS_SELECTOR, "#ghx-backlog[data-rendered]:not(.browser-metrics-stale)")
     board_columns = (By.CSS_SELECTOR, ".ghx-column")
+
+
+class TaskListLocators:
+    task_textarea = (By.XPATH, '//textarea[contains(@class, "task-textarea")]')
+    task_container = (By.XPATH, '//div[contains(@id, "tasklist-container")]/div')
+    task_check = (By.XPATH, '//input[contains(@class, "task-input")]')
+    task_span = (By.XPATH, '//span[contains(@class, "editable-task")]')
+    task_delete_button = (By.XPATH, '//div[contains(@class,"hover-actions")]/div/button[3]')
+    task_edit_button = (By.XPATH, '//div[contains(@class,"hover-actions")]/div/button[4]')
+    task_save_button = (By.XPATH, '//div[contains(@class, "task-edit-toolbar")]/div[2]/div[1]/button')
+    task_delete_text = (By.XPATH, '//span[contains(@class, "editable-task")]//ul/li[1]/button')

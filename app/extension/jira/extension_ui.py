@@ -1,44 +1,70 @@
 import random
 
-from selenium.webdriver.common.by import By
-
-from selenium_ui.base_page import BasePage
 from selenium_ui.conftest import print_timing
-from selenium_ui.jira.pages.pages import Login
-from util.conf import JIRA_SETTINGS
+from selenium_ui.jira.pages.pages import TaskListIssue, PopupManager
 
 
-def app_specific_action(webdriver, datasets):
-    page = BasePage(webdriver)
-    if datasets['custom_issues']:
-        issue_key = datasets['custom_issue_key']
+def tasklist_create_tasks(webdriver, datasets):
+    issue_page = TaskListIssue(webdriver, issue_key=datasets["issue_key"])
 
-    # To run action as specific user uncomment code bellow.
-    # NOTE: If app_specific_action is running as specific user, make sure that app_specific_action is running
-    # just before test_2_selenium_z_log_out action
-    #
-    # @print_timing("selenium_app_specific_user_login")
-    # def measure():
-    #     def app_specific_user_login(username='admin', password='admin'):
-    #         login_page = Login(webdriver)
-    #         login_page.delete_all_cookies()
-    #         login_page.go_to()
-    #         login_page.set_credentials(username=username, password=password)
-    #         if login_page.is_first_login():
-    #             login_page.first_login_setup()
-    #         if login_page.is_first_login_second_page():
-    #             login_page.first_login_second_page_setup()
-    #         login_page.wait_for_page_loaded()
-    #     app_specific_user_login(username='admin', password='admin')
-    # measure()
-
-    @print_timing("selenium_app_custom_action")
+    @print_timing("selenium_create_tasks")
     def measure():
-        @print_timing("selenium_app_custom_action:view_issue")
+        @print_timing("selenium_create_tasks:edit_issue")
         def sub_measure():
-            page.go_to_url(f"{JIRA_SETTINGS.server_url}/browse/{issue_key}")
-            page.wait_until_visible((By.ID, "summary-val"))  # Wait for summary field visible
-            page.wait_until_visible((By.ID, "ID_OF_YOUR_APP_SPECIFIC_UI_ELEMENT"))  # Wait for you app-specific UI element by ID selector
-        sub_measure()
-    measure()
+            issue_page.go_to()
+            issue_page.wait_for_page_loaded()
 
+        sub_measure()
+
+        @print_timing("selenium_create_tasks:create_tasks")
+        def sub_measure():
+            issue_page.create_tasks(count=random.randrange(5, 10))
+
+        sub_measure()
+
+    measure()
+    PopupManager(webdriver).dismiss_default_popup()
+
+
+def tasklist_delete_tasks(webdriver, datasets):
+    issue_page = TaskListIssue(webdriver, issue_key=datasets["custom_issue_key"])
+
+    @print_timing("selenium_delete_tasks")
+    def measure():
+        @print_timing("selenium_delete_tasks:load_page")
+        def sub_measure():
+            issue_page.go_to()
+            issue_page.wait_for_page_loaded()
+
+        sub_measure()
+
+        @print_timing("selenium_delete_tasks:delete_tasks")
+        def sub_measure():
+            issue_page.delete_task()
+
+        sub_measure()
+
+    measure()
+    PopupManager(webdriver).dismiss_default_popup()
+
+
+def tasklist_edit_tasks(webdriver, datasets):
+    issue_page = TaskListIssue(webdriver, issue_key=datasets["custom_issue_key"])
+
+    @print_timing("selenium_delete_tasks")
+    def measure():
+        @print_timing("selenium_delete_tasks:load_page")
+        def sub_measure():
+            issue_page.go_to()
+            issue_page.wait_for_page_loaded()
+
+        sub_measure()
+
+        @print_timing("selenium_delete_tasks:delete_tasks")
+        def sub_measure():
+            issue_page.edit_task()
+
+        sub_measure()
+
+    measure()
+    PopupManager(webdriver).dismiss_default_popup()
