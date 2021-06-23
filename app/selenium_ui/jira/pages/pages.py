@@ -247,7 +247,7 @@ class Board(BasePage):
 
 
 class TaskListIssue(Issue):
-    page_loaded_selector = [TaskListLocators.task_container, TaskListLocators.task_span, TaskListLocators.task_textarea]
+    page_loaded_selector = TaskListLocators.task_container
 
     def __init__(self, driver, issue_id=None, issue_key=None):
         Issue.__init__(self, driver, issue_key, issue_id)
@@ -257,6 +257,7 @@ class TaskListIssue(Issue):
 
     def wait_for_tasks(self):
         self.wait_until_present(TaskListLocators.task_container)
+        self.wait_until_present(TaskListLocators.task_span)
 
     def create_tasks(self, count=5):
         for _ in range(count):
@@ -264,16 +265,18 @@ class TaskListIssue(Issue):
                 self.__random_string()).send_keys(Keys.ENTER).perform()
 
     def delete_task(self):
-        element = random.choice(self.get_elements(TaskListLocators.task_span))
+        spans = self.get_elements(TaskListLocators.task_span)
+        element = random.choice(spans)
         coords = element.location_once_scrolled_into_view
         self.driver.execute_script(f'window.scrollTo({coords["x"]},{coords["y"]})')
         self.action_chains().click(element).pause(0.5).perform()
         delete_button = self.get_element(TaskListLocators.task_delete_button)
-        self.action_chains().move_to_element(delete_button).click().move_by_offset(20, 20).perform()
+        self.action_chains().click(delete_button).perform()
         self.wait_until_clickable(TaskListLocators.task_delete_text).click()
 
     def edit_task(self):
-        element = random.choice(self.get_elements(TaskListLocators.task_span))
+        spans = self.get_elements(TaskListLocators.task_span)
+        element = random.choice(spans)
         coords = element.location_once_scrolled_into_view
         self.driver.execute_script(f'window.scrollTo({coords["x"]},{coords["y"]})')
         self.action_chains().click(element).pause(0.5).perform()

@@ -28,6 +28,7 @@ def tasklist_create_tasks(webdriver, datasets):
 
 def tasklist_delete_tasks(webdriver, datasets):
     issue_page = TaskListIssue(webdriver, issue_key=datasets["custom_issue_key"])
+    PopupManager(webdriver).dismiss_default_popup()
 
     @print_timing("selenium_delete_tasks")
     def measure():
@@ -35,6 +36,7 @@ def tasklist_delete_tasks(webdriver, datasets):
         def sub_measure():
             issue_page.go_to()
             issue_page.wait_for_page_loaded()
+            issue_page.wait_for_tasks()
 
         sub_measure()
 
@@ -45,11 +47,11 @@ def tasklist_delete_tasks(webdriver, datasets):
         sub_measure()
 
     measure()
-    PopupManager(webdriver).dismiss_default_popup()
 
 
 def tasklist_edit_tasks(webdriver, datasets):
     issue_page = TaskListIssue(webdriver, issue_key=datasets["custom_issue_key"])
+    PopupManager(webdriver).dismiss_default_popup()
 
     @print_timing("selenium_delete_tasks")
     def measure():
@@ -57,6 +59,7 @@ def tasklist_edit_tasks(webdriver, datasets):
         def sub_measure():
             issue_page.go_to()
             issue_page.wait_for_page_loaded()
+            issue_page.wait_for_tasks()
 
         sub_measure()
 
@@ -67,4 +70,3 @@ def tasklist_edit_tasks(webdriver, datasets):
         sub_measure()
 
     measure()
-    PopupManager(webdriver).dismiss_default_popup()
