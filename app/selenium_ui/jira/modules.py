@@ -43,6 +43,7 @@ def setup_run_data(datasets):
     datasets['jql'] = urllib.parse.quote(random.choice(datasets[JQLS][0]))
     datasets['project_pages_count'] = projects_count // page_size if projects_count % page_size == 0 \
         else projects_count // page_size + 1
+    datasets['rte'] = rte_status
 
 
 def login(webdriver, datasets):

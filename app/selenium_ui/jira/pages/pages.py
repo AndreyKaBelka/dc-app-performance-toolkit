@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium_ui.base_page import BasePage
 from selenium_ui.conftest import retry
 from selenium_ui.jira.pages.selectors import UrlManager, LoginPageLocators, DashboardLocators, PopupLocators, \
-    IssueLocators, ProjectLocators, SearchLocators, BoardsListLocators, BoardLocators, LogoutLocators, TaskListLocators
+    IssueLocators, ProjectLocators, SearchLocators, BoardsListLocators, BoardLocators, LogoutLocators
 
 
 class PopupManager(BasePage):
@@ -247,47 +247,46 @@ class Board(BasePage):
 
 
 class TaskListIssue(Issue):
-    page_loaded_selector = TaskListLocators.task_container
-
     def __init__(self, driver, issue_id=None, issue_key=None):
         Issue.__init__(self, driver, issue_key, issue_id)
 
-    def click_on_task(self):
-        self.wait_until_clickable(TaskListLocators.task_check).click()
+    def create_task(self, rte):
+        self.fill_comment_edit(rte)
 
-    def wait_for_tasks(self):
-        self.wait_until_present(TaskListLocators.task_container)
-        self.wait_until_present(TaskListLocators.task_span)
+    def create_tasks(self, rte, count=5):
+        self.fill_comment_edit(rte, count)
 
-    def create_tasks(self, count=5):
-        for _ in range(count):
-            self.action_chains().click(self.get_element(TaskListLocators.task_textarea)).send_keys(
-                self.__random_string()).send_keys(Keys.ENTER).perform()
+    def fill_comment_edit(self, rte, count=1):
+        text = "".join([self.__get_macros_task() for _ in range(count)])
+        if rte:
+            self.__fill_rich_editor_textfield(text, selector=IssueLocators.edit_comment_text_field_RTE)
+        else:
+            self.__fill_textfield(text, selector=IssueLocators.edit_comment_text_field)
 
-    def delete_task(self):
-        spans = self.get_elements(TaskListLocators.task_span)
-        element = random.choice(spans)
-        coords = element.location_once_scrolled_into_view
-        self.driver.execute_script(f'window.scrollTo({coords["x"]},{coords["y"]})')
-        self.action_chains().click(element).pause(0.5).perform()
-        delete_button = self.get_element(TaskListLocators.task_delete_button)
-        self.action_chains().click(delete_button).perform()
-        self.wait_until_clickable(TaskListLocators.task_delete_text).click()
+    def __fill_rich_editor_textfield(self, text, selector):
+        self.wait_until_available_to_switch(selector)
+        self.get_element(IssueLocators.tinymce_description_field).send_keys(text)
+        self.return_to_parent_frame()
 
-    def edit_task(self):
-        spans = self.get_elements(TaskListLocators.task_span)
-        element = random.choice(spans)
-        coords = element.location_once_scrolled_into_view
-        self.driver.execute_script(f'window.scrollTo({coords["x"]},{coords["y"]})')
-        self.action_chains().click(element).pause(0.5).perform()
-        edit_button = self.get_element(TaskListLocators.task_edit_button)
-        self.action_chains().move_to_element(edit_button).click().perform()
-        self.wait_until_visible(TaskListLocators.task_edit_textarea)
-        text_area = self.get_element(TaskListLocators.task_edit_textarea)
-        self.action_chains().click(text_area).pause(0.3) \
-            .key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL) \
-            .send_keys(Keys.DELETE).pause(0.3).send_keys(self.__random_string(20)).perform()
-        self.wait_until_clickable(TaskListLocators.task_save_button).click()
+    def __fill_textfield(self, text, selector):
+        self.get_element(selector).send_keys(text)
+
+    def fill_description_create(self, rte):
+        text_description = ''.join([self.__get_macros_task() for _ in range(20)])
+        if rte:
+            self.__fill_rich_editor_textfield(text_description, selector=IssueLocators.issue_description_field_RTE)
+        else:
+            self.__fill_textfield(text_description, selector=IssueLocators.issue_description_field)
+
+    def edit_issue_with_tasks(self, rte):
+        text_description = f"{''.join([self.__get_macros_task() for _ in range(20)])}"
+        if rte:
+            self.__fill_rich_editor_textfield(text_description, selector=IssueLocators.issue_description_field_RTE)
+        else:
+            self.__fill_textfield(text_description, selector=IssueLocators.issue_description_field)
 
     def __random_string(self, count=10):
         return ''.join([random.choice(string.ascii_letters) for _ in range(count)])
+
+    def __get_macros_task(self):
+        return f'{{task}}{self.__random_string(20)}'
