@@ -247,7 +247,7 @@ class Board(BasePage):
 
 
 class TaskListIssue(Issue):
-    page_loaded_selector = [TaskListLocators.task_container, IssueLocators.issue_title]
+    page_loaded_selector = TaskListLocators.task_container
 
     def __init__(self, driver, issue_id=None, issue_key=None):
         Issue.__init__(self, driver, issue_key, issue_id)
@@ -279,6 +279,7 @@ class TaskListIssue(Issue):
         self.action_chains().click(element).pause(1).perform()
         edit_button = self.get_element(TaskListLocators.task_edit_button)
         self.action_chains().move_to_element(edit_button).click().perform()
+        self.wait_until_any_ec_presented(TaskListLocators.task_textarea)
         text_area = self.get_elements(TaskListLocators.task_textarea)[1]
         self.action_chains().click(text_area) \
             .key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL) \
