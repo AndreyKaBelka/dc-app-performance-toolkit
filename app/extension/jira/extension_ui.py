@@ -60,7 +60,7 @@ def tasklist_edit_tasks(webdriver, datasets):
 
         sub_measure()
 
-        @print_timing("selenium_delete_tasks:delete_tasks")
+        @print_timing("selenium_delete_tasks:edit_task")
         def sub_measure():
             issue_page.edit_task()
 

@@ -162,3 +162,4 @@ class TaskListLocators:
     task_edit_button = (By.XPATH, '//div[contains(@class,"hover-actions")]/div/button[4]')
     task_save_button = (By.XPATH, '//div[contains(@class, "task-edit-toolbar")]/div[2]/div[1]/button')
     task_delete_text = (By.XPATH, '//span[contains(@class, "editable-task")]//ul/li[1]/button')
+    task_edit_textarea = (By.XPATH, '//textarea[contains(@class, "task-textarea")][not(@data-issuekey)]')

@@ -276,14 +276,14 @@ class TaskListIssue(Issue):
         element = random.choice(self.get_elements(TaskListLocators.task_span))
         coords = element.location_once_scrolled_into_view
         self.driver.execute_script(f'window.scrollTo({coords["x"]},{coords["y"]})')
-        self.action_chains().click(element).pause(1).perform()
+        self.action_chains().click(element).pause(0.5).perform()
         edit_button = self.get_element(TaskListLocators.task_edit_button)
         self.action_chains().move_to_element(edit_button).click().perform()
-        self.wait_until_any_ec_presented(TaskListLocators.task_textarea)
-        text_area = self.get_elements(TaskListLocators.task_textarea)[1]
-        self.action_chains().click(text_area) \
+        self.wait_until_visible(TaskListLocators.task_edit_textarea)
+        text_area = self.get_element(TaskListLocators.task_edit_textarea)
+        self.action_chains().click(text_area).pause(0.3) \
             .key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL) \
-            .send_keys(Keys.DELETE).send_keys(self.__random_string(20)).perform()
+            .send_keys(Keys.DELETE).pause(0.3).send_keys(self.__random_string(20)).perform()
         self.wait_until_clickable(TaskListLocators.task_save_button).click()
 
     def __random_string(self, count=10):
