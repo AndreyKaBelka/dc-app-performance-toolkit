@@ -247,7 +247,7 @@ class Board(BasePage):
 
 
 class TaskListIssue(Issue):
-    page_loaded_selector = TaskListLocators.task_container
+    page_loaded_selector = [TaskListLocators.task_container, TaskListLocators.task_span, TaskListLocators.task_textarea]
 
     def __init__(self, driver, issue_id=None, issue_key=None):
         Issue.__init__(self, driver, issue_key, issue_id)
