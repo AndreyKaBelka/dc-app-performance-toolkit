@@ -1,10 +1,12 @@
-from selenium.webdriver.common.keys import Keys
-from selenium_ui.conftest import retry
-import time
-import random
 import json
+import random
+import string
+import time
+
+from selenium.webdriver.common.keys import Keys
 
 from selenium_ui.base_page import BasePage
+from selenium_ui.conftest import retry
 from selenium_ui.jira.pages.selectors import UrlManager, LoginPageLocators, DashboardLocators, PopupLocators, \
     IssueLocators, ProjectLocators, SearchLocators, BoardsListLocators, BoardLocators, LogoutLocators
 
@@ -144,6 +146,7 @@ class Issue(BasePage):
     def set_issue_type(self):
         def __filer_epic(element):
             return "epic" not in element.get_attribute("class").lower()
+
         issue_types = {}
         data_suggestions = json.loads(self.get_element(IssueLocators.issue_types_options)
                                       .get_attribute('data-suggestions'))
@@ -168,6 +171,7 @@ class Issue(BasePage):
                         rnd_issue_type_el = random.choice(filtered_issue_elements)
                         self.action_chains().move_to_element(rnd_issue_type_el).click(rnd_issue_type_el).perform()
                     self.wait_until_invisible(IssueLocators.issue_ready_to_save_spinner)
+
                 choose_non_epic_issue_type()
 
     def submit_issue(self):
@@ -240,3 +244,49 @@ class Board(BasePage):
 
     def wait_for_scrum_board_backlog(self):
         self.wait_until_present(BoardLocators.scrum_board_backlog_content)
+
+
+class TaskListIssue(Issue):
+    def __init__(self, driver, issue_id=None, issue_key=None):
+        Issue.__init__(self, driver, issue_key, issue_id)
+
+    def create_task(self, rte):
+        self.fill_comment_edit(rte)
+
+    def create_tasks(self, rte, count=5):
+        self.fill_comment_edit(rte, count)
+
+    def fill_comment_edit(self, rte, count=1):
+        text = "".join([self.__get_macros_task() for _ in range(count)])
+        if rte:
+            self.__fill_rich_editor_textfield(text, selector=IssueLocators.edit_comment_text_field_RTE)
+        else:
+            self.__fill_textfield(text, selector=IssueLocators.edit_comment_text_field)
+
+    def __fill_rich_editor_textfield(self, text, selector):
+        self.wait_until_available_to_switch(selector)
+        self.get_element(IssueLocators.tinymce_description_field).send_keys(text)
+        self.return_to_parent_frame()
+
+    def __fill_textfield(self, text, selector):
+        self.get_element(selector).send_keys(text)
+
+    def fill_description_create(self, rte):
+        text_description = ''.join([self.__get_macros_task() for _ in range(20)])
+        if rte:
+            self.__fill_rich_editor_textfield(text_description, selector=IssueLocators.issue_description_field_RTE)
+        else:
+            self.__fill_textfield(text_description, selector=IssueLocators.issue_description_field)
+
+    def edit_issue_with_tasks(self, rte):
+        text_description = f"{''.join([self.__get_macros_task() for _ in range(20)])}"
+        if rte:
+            self.__fill_rich_editor_textfield(text_description, selector=IssueLocators.issue_description_field_RTE)
+        else:
+            self.__fill_textfield(text_description, selector=IssueLocators.issue_description_field)
+
+    def __random_string(self, count=10):
+        return ''.join([random.choice(string.ascii_letters) for _ in range(count)])
+
+    def __get_macros_task(self):
+        return f'{{task}}{self.__random_string(20)}'

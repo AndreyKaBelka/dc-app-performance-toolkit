@@ -4,7 +4,6 @@ import urllib.parse
 from selenium_ui.conftest import print_timing
 from selenium_ui.jira.pages.pages import Login, PopupManager, Issue, Project, Search, ProjectsList, \
     BoardsList, Board, Dashboard, Logout
-
 from util.api.jira_clients import JiraRestClient
 from util.conf import JIRA_SETTINGS
 
@@ -43,6 +42,10 @@ def setup_run_data(datasets):
     datasets['jql'] = urllib.parse.quote(random.choice(datasets[JQLS][0]))
     datasets['project_pages_count'] = projects_count // page_size if projects_count % page_size == 0 \
         else projects_count // page_size + 1
+    datasets['tl_like'] = random.choice(datasets['tasklist_like'])
+    datasets['tl_is'] = random.choice(datasets['tasklist_is'])
+    datasets['tl_eq'] = random.choice(datasets['tasklist_equals_relation'])
+    datasets['rte'] = rte_status
 
 
 def login(webdriver, datasets):
@@ -57,6 +60,7 @@ def login(webdriver, datasets):
             login_page.go_to()
             webdriver.node_id = login_page.get_node_id()
             print(f"node_id:{webdriver.node_id}")
+
         sub_measure()
 
         @print_timing("selenium_login:login_and_view_dashboard")
@@ -67,7 +71,9 @@ def login(webdriver, datasets):
             if login_page.is_first_login_second_page():
                 login_page.first_login_second_page_setup()
             login_page.wait_for_page_loaded()
+
         sub_measure()
+
     measure()
     PopupManager(webdriver).dismiss_default_popup()
 
@@ -79,6 +85,7 @@ def view_issue(webdriver, datasets):
     def measure():
         issue_page.go_to()
         issue_page.wait_for_page_loaded()
+
     measure()
 
 
@@ -89,6 +96,7 @@ def view_project_summary(webdriver, datasets):
     def measure():
         project_page.go_to()
         project_page.wait_for_page_loaded()
+
     measure()
 
 
@@ -97,10 +105,10 @@ def create_issue(webdriver, dataset):
 
     @print_timing("selenium_create_issue")
     def measure():
-
         @print_timing("selenium_create_issue:open_quick_create")
         def sub_measure():
             issue_modal.open_create_issue_modal()
+
         sub_measure()
 
         @print_timing("selenium_create_issue:fill_and_submit_issue_form")
@@ -114,8 +122,11 @@ def create_issue(webdriver, dataset):
             @print_timing("selenium_create_issue:fill_and_submit_issue_form:submit_issue_form")
             def sub_sub_measure():
                 issue_modal.submit_issue()
+
             sub_sub_measure()
+
         sub_measure()
+
     measure()
     PopupManager(webdriver).dismiss_default_popup()
 
@@ -127,6 +138,7 @@ def search_jql(webdriver, datasets):
     def measure():
         search_page.go_to()
         search_page.wait_for_page_loaded()
+
     measure()
 
 
@@ -135,10 +147,10 @@ def edit_issue(webdriver, datasets):
 
     @print_timing("selenium_edit_issue")
     def measure():
-
         @print_timing("selenium_edit_issue:open_edit_issue_form")
         def sub_measure():
             issue_page.go_to_edit_issue()  # open editor
+
         sub_measure()
 
         issue_page.fill_summary_edit()  # edit summary
@@ -148,7 +160,9 @@ def edit_issue(webdriver, datasets):
         def sub_measure():
             issue_page.edit_issue_submit()  # submit edit issue
             issue_page.wait_for_issue_title()
+
         sub_measure()
+
     measure()
 
 
@@ -157,10 +171,10 @@ def save_comment(webdriver, datasets):
 
     @print_timing("selenium_save_comment")
     def measure():
-
         @print_timing("selenium_save_comment:open_comment_form")
         def sub_measure():
             issue_page.go_to_edit_comment()  # Open edit comment page
+
         sub_measure()
 
         issue_page.fill_comment_edit(rte_status)  # Fill comment text field
@@ -168,7 +182,9 @@ def save_comment(webdriver, datasets):
         @print_timing("selenium_save_comment:submit_form")
         def sub_measure():
             issue_page.edit_comment_submit()  # Submit comment
+
         sub_measure()
+
     measure()
 
 
@@ -178,6 +194,7 @@ def browse_projects_list(webdriver, datasets):
         projects_list_page = ProjectsList(webdriver, projects_list_pages=datasets['project_pages_count'])
         projects_list_page.go_to()
         projects_list_page.wait_for_page_loaded()
+
     measure()
 
 
@@ -187,6 +204,7 @@ def browse_boards_list(webdriver, datasets):
         boards_list_page = BoardsList(webdriver)
         boards_list_page.go_to()
         boards_list_page.wait_for_page_loaded()
+
     measure()
     PopupManager(webdriver).dismiss_default_popup()
 
@@ -198,6 +216,7 @@ def view_backlog_for_scrum_board(webdriver, datasets):
     def measure():
         scrum_board_page.go_to_backlog()
         scrum_board_page.wait_for_scrum_board_backlog()
+
     measure()
 
 
@@ -208,6 +227,7 @@ def view_scrum_board(webdriver, datasets):
     def measure():
         scrum_board_page.go_to()
         scrum_board_page.wait_for_page_loaded()
+
     measure()
 
 
@@ -218,6 +238,7 @@ def view_kanban_board(webdriver, datasets):
     def measure():
         kanban_board_page.go_to()
         kanban_board_page.wait_for_page_loaded()
+
     measure()
 
 
@@ -228,6 +249,7 @@ def view_dashboard(webdriver, datasets):
     def measure():
         dashboard_page.go_to()
         dashboard_page.wait_dashboard_presented()
+
     measure()
 
 
@@ -239,4 +261,5 @@ def log_out(webdriver, datasets):
         logout_page.go_to()
         logout_page.click_logout()
         logout_page.wait_for_page_loaded()
+
     measure()

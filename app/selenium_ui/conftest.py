@@ -6,20 +6,21 @@ import os
 import sys
 import time
 from datetime import timezone
+from time import sleep
 
 import filelock
 import pytest
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
-from time import sleep
 
 from util.conf import CONFLUENCE_SETTINGS, JIRA_SETTINGS, BITBUCKET_SETTINGS, JSM_SETTINGS
 from util.project_paths import JIRA_DATASET_ISSUES, JIRA_DATASET_JQLS, JIRA_DATASET_KANBAN_BOARDS, \
     JIRA_DATASET_PROJECTS, JIRA_DATASET_SCRUM_BOARDS, JIRA_DATASET_USERS, JIRA_DATASET_CUSTOM_ISSUES, BITBUCKET_USERS, \
     BITBUCKET_PROJECTS, BITBUCKET_REPOS, BITBUCKET_PRS, CONFLUENCE_BLOGS, CONFLUENCE_PAGES, CONFLUENCE_CUSTOM_PAGES, \
     CONFLUENCE_USERS, ENV_TAURUS_ARTIFACT_DIR, JSM_DATASET_REQUESTS, JSM_DATASET_CUSTOMERS, JSM_DATASET_AGENTS, \
-    JSM_DATASET_SERVICE_DESKS_L, JSM_DATASET_SERVICE_DESKS_M, JSM_DATASET_SERVICE_DESKS_S, JSM_DATASET_CUSTOM_ISSUES
+    JSM_DATASET_SERVICE_DESKS_L, JSM_DATASET_SERVICE_DESKS_M, JSM_DATASET_SERVICE_DESKS_S, JSM_DATASET_CUSTOM_ISSUES, \
+    TASKLIST_JQLS
 
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
@@ -49,6 +50,12 @@ class Dataset:
             self.dataset["kanban_boards"] = self.__read_input_file(JIRA_DATASET_KANBAN_BOARDS)
             self.dataset["projects"] = self.__read_input_file(JIRA_DATASET_PROJECTS)
             self.dataset["custom_issues"] = self.__read_input_file(JIRA_DATASET_CUSTOM_ISSUES)
+            jqls = self.__read_input_file(TASKLIST_JQLS)
+            self.dataset['tasklist_like'], self.dataset['tasklist_equals_relation'], self.dataset[
+                'tasklist_is'] = [], [], []
+
+            for ob in jqls:
+                self.dataset[f'tasklist_{ob[0]}'].append(ob[1])
         return self.dataset
 
     def jsm_dataset(self):
@@ -147,6 +154,7 @@ def print_timing(interaction=None):
                 raise Exception(error_msg, full_exception)
 
         return wrapper
+
     return deco_wrapper
 
 
@@ -167,6 +175,7 @@ def webdriver(app_settings):
         driver = Chrome(options=chrome_options)
         driver.app_settings = app_settings
         return driver
+
     # First time driver init
     if not globals.driver:
         driver = driver_init()
@@ -174,6 +183,7 @@ def webdriver(app_settings):
 
         def driver_quit():
             driver.quit()
+
         globals.driver = driver
         atexit.register(driver_quit)
         return driver
@@ -319,4 +329,5 @@ def retry(tries=4, delay=0.5, backoff=2, retry_exception=None):
                     return f(*args, **kwargs)  # extra try, to avoid except-raise syntax
 
         return f_retry
+
     return deco_retry

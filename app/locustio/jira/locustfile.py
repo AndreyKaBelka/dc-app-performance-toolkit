@@ -70,5 +70,5 @@ class JiraBehavior(MyBaseTaskSet):
 
 class JiraUser(HttpUser):
     host = JIRA_SETTINGS.server_url
-    tasks = [JiraBehavior]
+    # tasks = [JiraBehavior]
     wait_time = between(0, 0)

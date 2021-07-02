@@ -3,11 +3,10 @@ import string
 
 import urllib3
 
-
-from util.conf import JIRA_SETTINGS
 from util.api.jira_clients import JiraRestClient
+from util.conf import JIRA_SETTINGS
 from util.project_paths import JIRA_DATASET_JQLS, JIRA_DATASET_SCRUM_BOARDS, JIRA_DATASET_KANBAN_BOARDS, \
-    JIRA_DATASET_USERS, JIRA_DATASET_ISSUES, JIRA_DATASET_PROJECTS, JIRA_DATASET_CUSTOM_ISSUES
+    JIRA_DATASET_USERS, JIRA_DATASET_ISSUES, JIRA_DATASET_PROJECTS, JIRA_DATASET_CUSTOM_ISSUES, TASKLIST_JQLS
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -18,6 +17,7 @@ ISSUES = "issues"
 JQLS = "jqls"
 PROJECTS = "projects"
 CUSTOM_ISSUES = "custom_issues"
+TL_JQLS = "tl_jqls"
 
 DEFAULT_USER_PASSWORD = 'password'
 DEFAULT_USER_PREFIX = 'performance_'
@@ -30,6 +30,24 @@ def __generate_jqls(max_length=3, count=100):
     # Generate jqls like "abc*"
     return ['text ~ "{}*" order by key'.format(
         ''.join(random.choices(string.ascii_lowercase, k=max_length))) for _ in range(count)]
+
+
+def __generate_tasklist_like_jql(field_name: str, max_length: int = 1):
+    operators = ['~']
+    return '{} {} "{}*"'.format(field_name, random.choice(operators),
+                                ''.join(
+                                    random.choices(string.ascii_lowercase + string.digits, k=max_length)))
+
+
+def __generate_tasklist_is_jql(field_name: str):
+    operators = ['is', 'is not']
+    return '{} {} EMPTY '.format(field_name, random.choice(operators))
+
+
+def __generate_tasklist_digits_jql(field_name: str):
+    operators = ['>', '>=', '<=', '<', '=', '!=']
+    return '{} {} {}'.format(field_name, random.choice(operators),
+                             ''.join([random.choice(string.digits) for _ in range(random.randint(1, 2))]))
 
 
 # https://jira.atlassian.com/browse/JRASERVER-65089 User search startAt parameter is not working
@@ -67,6 +85,9 @@ def generate_random_string(length=20):
 def write_test_data_to_files(datasets):
     __write_to_file(JIRA_DATASET_JQLS, datasets[JQLS])
 
+    tl_jqls = [f"{jql['type']}, {jql['jql']}" for jql in datasets[TL_JQLS]]
+    __write_to_file(TASKLIST_JQLS, tl_jqls)
+
     scrum_boards = [board['id'] for board in datasets[SCRUM_BOARDS]]
     __write_to_file(JIRA_DATASET_SCRUM_BOARDS, scrum_boards)
 
@@ -92,6 +113,31 @@ def __write_to_file(file_path, items):
             f.write(f"{item}\n")
 
 
+def __generate_tasklist_jqls(count: int = 150):
+    result = []
+
+    operators = ["allTasks", "closedTasks", "openTasks"]
+    for _ in range(count):
+        result.append({
+            "type": "like",
+            "jql": __generate_tasklist_like_jql(random.choice(operators))
+        })
+
+        result.append({
+            "type": "is",
+            "jql": __generate_tasklist_is_jql(random.choice(operators))
+        })
+
+    operators = ['allTasksCount', 'closedTasksCount', 'openTasksCount']
+    for _ in range(count):
+        result.append({
+            "type": "equals_relation",
+            "jql": __generate_tasklist_digits_jql(random.choice(operators))
+        })
+
+    return result
+
+
 def __create_data_set(jira_api):
     dataset = dict()
     dataset[USERS] = __get_users(jira_api)
@@ -104,12 +150,14 @@ def __create_data_set(jira_api):
     dataset[SCRUM_BOARDS] = __get_boards(perf_user_api, 'scrum')
     dataset[KANBAN_BOARDS] = __get_boards(perf_user_api, 'kanban')
     dataset[JQLS] = __generate_jqls(count=150)
+    dataset[TL_JQLS] = __generate_tasklist_jqls(count=150)
     print(f'Users count: {len(dataset[USERS])}')
     print(f'Projects: {len(dataset[PROJECTS])}')
     print(f'Issues count: {len(dataset[ISSUES])}')
     print(f'Scrum boards count: {len(dataset[SCRUM_BOARDS])}')
     print(f'Kanban boards count: {len(dataset[KANBAN_BOARDS])}')
     print(f'Jqls count: {len(dataset[JQLS])}')
+    print(f'TASKLIST jqls count: {len(dataset[TL_JQLS])}')
     print('------------------------')
     print(f'Custom dataset issues: {len(dataset[CUSTOM_ISSUES])}')
 

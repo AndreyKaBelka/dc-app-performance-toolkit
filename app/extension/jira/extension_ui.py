@@ -1,44 +1,131 @@
-import random
-
-from selenium.webdriver.common.by import By
-
-from selenium_ui.base_page import BasePage
 from selenium_ui.conftest import print_timing
-from selenium_ui.jira.pages.pages import Login
-from util.conf import JIRA_SETTINGS
+from selenium_ui.jira.pages.pages import Search, TaskListIssue
 
 
-def app_specific_action(webdriver, datasets):
-    page = BasePage(webdriver)
-    if datasets['custom_issues']:
-        issue_key = datasets['custom_issue_key']
+def tasklist_like_jql(webdriver, datasets):
+    search_page = Search(webdriver, jql=datasets['tl_like'])
 
-    # To run action as specific user uncomment code bellow.
-    # NOTE: If app_specific_action is running as specific user, make sure that app_specific_action is running
-    # just before test_2_selenium_z_log_out action
-    #
-    # @print_timing("selenium_app_specific_user_login")
-    # def measure():
-    #     def app_specific_user_login(username='admin', password='admin'):
-    #         login_page = Login(webdriver)
-    #         login_page.delete_all_cookies()
-    #         login_page.go_to()
-    #         login_page.set_credentials(username=username, password=password)
-    #         if login_page.is_first_login():
-    #             login_page.first_login_setup()
-    #         if login_page.is_first_login_second_page():
-    #             login_page.first_login_second_page_setup()
-    #         login_page.wait_for_page_loaded()
-    #     app_specific_user_login(username='admin', password='admin')
-    # measure()
-
-    @print_timing("selenium_app_custom_action")
+    @print_timing("selenium_search_like_jql")
     def measure():
-        @print_timing("selenium_app_custom_action:view_issue")
-        def sub_measure():
-            page.go_to_url(f"{JIRA_SETTINGS.server_url}/browse/{issue_key}")
-            page.wait_until_visible((By.ID, "summary-val"))  # Wait for summary field visible
-            page.wait_until_visible((By.ID, "ID_OF_YOUR_APP_SPECIFIC_UI_ELEMENT"))  # Wait for you app-specific UI element by ID selector
-        sub_measure()
+        search_page.go_to()
+        search_page.wait_for_page_loaded()
+
     measure()
 
+
+def tasklist_is_jql(webdriver, datasets):
+    search_page = Search(webdriver, jql=datasets['tl_is'])
+
+    @print_timing("selenium_search_is_jql")
+    def measure():
+        search_page.go_to()
+        search_page.wait_for_page_loaded()
+
+    measure()
+
+
+def tasklist_eq_jql(webdriver, datasets):
+    search_page = Search(webdriver, jql=datasets['tl_eq'])
+
+    @print_timing("selenium_search_eq_jql")
+    def measure():
+        search_page.go_to()
+        search_page.wait_for_page_loaded()
+
+    measure()
+
+
+def tasklist_create_task(webdriver, datasets):
+    issue_page = TaskListIssue(webdriver, issue_id=datasets["issue_id"])
+
+    @print_timing("selenium_create_task")
+    def measure():
+        @print_timing("selenium_create_task:load_issue")
+        def sub_measure():
+            issue_page.go_to_edit_comment()
+
+        sub_measure()
+        issue_page.create_task(datasets['rte'])
+
+        @print_timing("selenium_create_task:submit_comment")
+        def sub_measure():
+            issue_page.edit_comment_submit()
+
+        sub_measure()
+
+    measure()
+
+
+def tasklist_create_5_tasks(webdriver, datasets):
+    issue_page = TaskListIssue(webdriver, issue_id=datasets["issue_id"])
+
+    @print_timing("selenium_create_5_tasks")
+    def measure():
+        @print_timing("selenium_create_5_tasks:load_issue")
+        def sub_measure():
+            issue_page.go_to_edit_comment()
+
+        sub_measure()
+        issue_page.create_tasks(datasets['rte'], 5)
+
+        @print_timing("selenium_create_5_tasks:submit_comment")
+        def sub_measure():
+            issue_page.edit_comment_submit()
+
+        sub_measure()
+
+    measure()
+
+
+def tasklist_create_issue_with_tasks(webdriver, datasets):
+    issue_page = TaskListIssue(webdriver, issue_key=datasets["issue_key"])
+
+    @print_timing("selenium_create_issue_with_tasks")
+    def measure():
+        @print_timing("selenium_create_issue_with_tasks:open_quick_create")
+        def sub_measure():
+            issue_page.open_create_issue_modal()
+
+        sub_measure()
+
+        @print_timing("selenium_create_issue_with_tasks:submit_comment")
+        def sub_measure():
+            issue_page.fill_summary_create()  # Fill summary field
+            issue_page.fill_description_create(datasets['rte'])  # Fill description field
+            issue_page.assign_to_me()  # Click assign to me
+            issue_page.set_resolution()  # Set resolution if there is such field
+            issue_page.set_issue_type()  # Set issue type, use non epic type
+
+            @print_timing("selenium_create_issue_with_tasks:submit_comment:submit_issue_form")
+            def sub_sub_measure():
+                issue_page.submit_issue()
+
+            sub_sub_measure()
+
+        sub_measure()
+
+    measure()
+
+
+def tasklist_edit_issue_with_tasks(webdriver, datasets):
+    issue_page = TaskListIssue(webdriver, issue_id=datasets['custom_issue_id'])
+
+    @print_timing("selenium_edit_issue_with_tasks")
+    def measure():
+        @print_timing("selenium_edit_issue_with_tasks:load_issue")
+        def sub_measure():
+            issue_page.go_to_edit_issue()
+
+        sub_measure()
+
+        issue_page.fill_summary_edit()
+        issue_page.edit_issue_with_tasks(datasets['rte'])
+
+        @print_timing("selenium_edit_issue_with_tasks:submit_issue")
+        def sub_measure():
+            issue_page.edit_issue_submit()
+            issue_page.wait_for_issue_title()
+
+        sub_measure()
+
+    measure()
