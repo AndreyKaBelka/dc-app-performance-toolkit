@@ -157,7 +157,7 @@ def view_issue(locust):
                       catch_response=True)
 
 
-def create_issue(locust):
+def create_issue(locust, description=None):
     params = CreateIssue()
     project = random.choice(jira_dataset['projects'])
     project_id = project[1]
@@ -210,7 +210,7 @@ def create_issue(locust):
     def create_issue_submit_form():
         raise_if_login_failed(locust)
         issue_body = params.prepare_issue_body(locust.session_data_storage['issue_body_params_dict'],
-                                               user=locust.session_data_storage["username"])
+                                               user=locust.session_data_storage["username"], description=description)
 
         # 215 /secure/QuickCreateIssue.jspa?decorator=none
         r = locust.post('/secure/QuickCreateIssue.jspa?decorator=none',

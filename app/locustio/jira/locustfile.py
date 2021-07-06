@@ -1,9 +1,10 @@
 from locust import HttpUser, task, between
+
+from extension.jira.extension_locust import *
+from locustio.common_utils import LocustConfig, MyBaseTaskSet
 from locustio.jira.http_actions import login_and_view_dashboard, create_issue, search_jql, view_issue, \
     view_project_summary, view_dashboard, edit_issue, add_comment, browse_boards, view_kanban_board, view_scrum_board, \
     view_backlog, browse_projects
-from locustio.common_utils import LocustConfig, MyBaseTaskSet
-from extension.jira.extension_locust import app_specific_action
 from util.conf import JIRA_SETTINGS
 
 config = LocustConfig(config_yml=JIRA_SETTINGS)
@@ -63,12 +64,20 @@ class JiraBehavior(MyBaseTaskSet):
     def browse_boards_action(self):
         browse_boards(self)
 
-    @task(config.percentage('standalone_extension'))  # By default disabled
-    def custom_action(self):
-        app_specific_action(self)
+    @task(config.percentage('standalone_extension'))
+    def app_specific(self):
+        create_task(self)
+
+    @task(config.percentage('standalone_extension'))
+    def create_issue(self):
+        create_issue_with_tasks(self)
+
+    @task(config.percentage('standalone_extension'))
+    def create_5_tasks(self):
+        create_5_tasks(self)
 
 
 class JiraUser(HttpUser):
     host = JIRA_SETTINGS.server_url
-    # tasks = [JiraBehavior]
+    tasks = [JiraBehavior]
     wait_time = between(0, 0)

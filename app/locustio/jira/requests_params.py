@@ -66,8 +66,9 @@ class CreateIssue(JiraResource):
     err_message_create_issue = 'Issue was not created'
 
     @staticmethod
-    def prepare_issue_body(issue_body_dict: dict, user):
-        description = f"Locust description {generate_random_string(20)}"
+    def prepare_issue_body(issue_body_dict: dict, user, description=None):
+        if not description:
+            description = f"Locust description {generate_random_string(20)}"
         summary = f"Locust summary {generate_random_string(10)}"
         environment = f'Locust environment {generate_random_string(10)}'
         duedate = ""
